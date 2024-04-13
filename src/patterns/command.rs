@@ -1,3 +1,6 @@
+// As performance, there is always a trade-off between performance and code simplicity and organisation.
+// Static dispatch gives faster performance, while dynamic dispatch provides flexibility when we structure our application
+
 /// If command is a whole struct with a bunch of functions and variables defined as separated module
 /// then using this would be more suitable
 ///

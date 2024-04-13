@@ -60,8 +60,29 @@ pub mod trait_object {
     }
 }
 
-mod function_pointer {
-    type FnPtr = fn() -> String;
+/// If commands are small and may be defined as functions or passed as a closure
+/// then using this might be preferable since it does not exploit dynamic dispatch
+///
+/// # Example
+/// ```
+/// # use crate::design_patterns::patterns::command::function_pointer::FnPtr;
+/// # fn use_function_pointer(add_field: FnPtr, remove_field: FnPtr) {
+/// use crate::design_patterns::patterns::command::function_pointer::Schema;
+///
+/// let mut schema = Schema::default();
+///
+/// schema.add_migration(
+///     || String::from("create table"),
+///     || String::from("drop table"),
+/// );
+/// schema.add_migration(add_field, remove_field);
+///
+/// assert_eq!(vec!["create table", "add field"], schema.execute());
+/// assert_eq!(vec!["remove field", "drop table"], schema.rollback());
+/// # }
+/// ```
+pub mod function_pointer {
+    pub type FnPtr = fn() -> String;
 
     pub struct Command {
         execute: FnPtr,

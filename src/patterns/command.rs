@@ -1,3 +1,22 @@
+/// If command is a whole struct with a bunch of functions and variables defined as separated module
+/// then using this would be more suitable
+///
+/// # Example
+/// ```
+/// use design_patterns::patterns::command::trait_object::{Schema, CreateTable, AddField};
+///
+/// let mut schema = Schema::default();
+/// let cmd = Box::new(CreateTable);
+///
+/// schema.add_migration(cmd);
+///
+/// let cmd = Box::new(AddField);
+///
+/// schema.add_migration(cmd);
+///
+/// assert_eq!(vec!["create table", "add field"], schema.execute());
+/// assert_eq!(vec!["remove field", "drop table"], schema.rollback());
+/// ```
 pub mod trait_object {
     pub trait Migration {
         fn execute(&self) -> &str;
@@ -65,9 +84,9 @@ pub mod trait_object {
 ///
 /// # Example
 /// ```
-/// # use crate::design_patterns::patterns::command::function_pointer::FnPtr;
+/// # use design_patterns::patterns::command::function_pointer::FnPtr;
 /// # fn use_function_pointer(add_field: FnPtr, remove_field: FnPtr) {
-/// use crate::design_patterns::patterns::command::function_pointer::Schema;
+/// use design_patterns::patterns::command::function_pointer::Schema;
 ///
 /// let mut schema = Schema::default();
 ///

@@ -103,6 +103,51 @@ mod function_pointer {
     }
 }
 
+mod fn_trait_object {
+    type Migration<'a> = Box<dyn Fn() -> &'a str>;
+
+    pub struct Schema<'a> {
+        executes: Vec<Migration<'a>>,
+        rollbacks: Vec<Migration<'a>>,
+    }
+
+    impl<'a> Schema<'a> {
+        pub fn new() -> Self {
+            Schema {
+                executes: Vec::new(),
+                rollbacks: Vec::new(),
+            }
+        }
+
+        pub fn add_migration<E, R>(&mut self, execute: E, rollback: R)
+        where
+            E: Fn() -> &'a str + 'static,
+            R: Fn() -> &'a str + 'static,
+        {
+            self.executes.push(Box::new(execute));
+            self.rollbacks.push(Box::new(rollback));
+        }
+
+        pub fn execute(&self) -> Vec<&str> {
+            self.executes.iter().map(|execute| execute()).collect()
+        }
+
+        pub fn rollback(&self) -> Vec<&str> {
+            self.rollbacks
+                .iter()
+                .rev()
+                .map(|rollback| rollback())
+                .collect()
+        }
+    }
+
+    impl<'a> Default for Schema<'a> {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+}
+
 #[cfg(test)]
 mod test_trait_object {
     use super::trait_object::{AddField, CreateTable, Schema};
@@ -143,6 +188,30 @@ mod test_function_pointer {
             || String::from("create table"),
             || String::from("drop table"),
         );
+        schema.add_migration(add_field, remove_field);
+
+        assert_eq!(vec!["create table", "add field"], schema.execute());
+        assert_eq!(vec!["remove field", "drop table"], schema.rollback());
+    }
+}
+
+#[cfg(test)]
+mod test_fn_trait_object {
+    use crate::patterns::command::fn_trait_object::Schema;
+
+    fn add_field() -> &'static str {
+        "add field"
+    }
+
+    fn remove_field() -> &'static str {
+        "remove field"
+    }
+
+    #[test]
+    fn test_command() {
+        let mut schema = Schema::default();
+
+        schema.add_migration(|| "create table", || "drop table");
         schema.add_migration(add_field, remove_field);
 
         assert_eq!(vec!["create table", "add field"], schema.execute());
